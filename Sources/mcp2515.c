@@ -9,24 +9,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if 0
-#define CMD_VAL ((1 << 15) | MCF_QSPI_QDR_BITSE | \
-		(~MCF_QSPI_QDR_DT) | MCF_QSPI_QDR_DSCK | ~(MCF_QSPI_QDR_QSPI_CS3))>>8
-#endif
-
+// each entry of queue must be fill this CMD 
 #define CMD_VAL (1 << 15 | 1 << 14 | 1 << 13 | 1 << 12 | 0x7 << 8)
+
 void write_data_2515(uint8 addr, uint8 data)
 {
-    tQSPIBuffers *MyBuf;
+    tQSPIBuffers *MyBuf = NULL;
 	
 	MyBuf = QSPI_InitFullBuffer(3);
 	
-	MyBuf->pu16TxData[0] = CAN_WRITE;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
-	MyBuf->pu16TxData[1] = addr;
-	MyBuf->pu8Cmd[1] = CMD_VAL;
-	MyBuf->pu16TxData[2] = data;
-	MyBuf->pu8Cmd[2] = CMD_VAL;
+	MyBuf->tx_data[0] = CAN_WRITE;
+	MyBuf->cmd[0] = CMD_VAL;
+	MyBuf->tx_data[1] = addr;
+	MyBuf->cmd[1] = CMD_VAL;
+	MyBuf->tx_data[2] = data;
+	MyBuf->cmd[2] = CMD_VAL;
 	
 	QSPIPollBufferTransfer(MyBuf);
 	QSPI_FreeFullBuffer(MyBuf);
@@ -36,12 +33,11 @@ void write_data_2515(uint8 addr, uint8 data)
 
 void reset_2515()
 {
-    tQSPIBuffers *MyBuf;
+    tQSPIBuffers *MyBuf = NULL;
 	
 	MyBuf = QSPI_InitFullBuffer(1);
-	//printf("%x\n", CMD_VAL);
-	MyBuf->pu16TxData[0] = CAN_RESET;
-	MyBuf->pu8Cmd[0] = 0x77;
+	MyBuf->tx_data[0] = CAN_RESET;
+	MyBuf->cmd[0] = CMD_VAL;
 	
 	QSPIPollBufferTransfer(MyBuf);
 	QSPI_FreeFullBuffer(MyBuf);
@@ -51,18 +47,18 @@ void reset_2515()
 
 void bit_modify_2515(uint8 addr, uint8 mask, uint8 data)
 {
-    tQSPIBuffers *MyBuf;
+    tQSPIBuffers *MyBuf = NULL;
 	
 	MyBuf = QSPI_InitFullBuffer(4);
 	
-	MyBuf->pu16TxData[0] = CAN_BIT_MODIFY;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
-	MyBuf->pu16TxData[1] = addr;
-	MyBuf->pu8Cmd[1] = CMD_VAL;
-	MyBuf->pu16TxData[2] = mask;
-	MyBuf->pu8Cmd[2] = CMD_VAL;
-	MyBuf->pu16TxData[3] = data;
-	MyBuf->pu8Cmd[3] = CMD_VAL;
+	MyBuf->tx_data[0] = CAN_BIT_MODIFY;
+	MyBuf->cmd[0] = CMD_VAL;
+	MyBuf->tx_data[1] = addr;
+	MyBuf->cmd[1] = CMD_VAL;
+	MyBuf->tx_data[2] = mask;
+	MyBuf->cmd[2] = CMD_VAL;
+	MyBuf->tx_data[3] = data;
+	MyBuf->cmd[3] = CMD_VAL;
 		
 	QSPIPollBufferTransfer(MyBuf);
 	QSPI_FreeFullBuffer(MyBuf);
@@ -78,23 +74,24 @@ uint8 read_data_2515(uint8 addr)
 	
 	MyBuf = QSPI_InitFullBuffer(3);
 	
-	MyBuf->pu16TxData[0] = CAN_READ;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
-	MyBuf->pu16TxData[1] = addr;
-	MyBuf->pu8Cmd[1] = CMD_VAL;
-	MyBuf->pu8Cmd[2] = CMD_VAL;
+	MyBuf->tx_data[0] = CAN_READ;
+	MyBuf->cmd[0] = CMD_VAL;
+	MyBuf->tx_data[1] = addr;
+	MyBuf->cmd[1] = CMD_VAL;
+	MyBuf->cmd[2] = CMD_VAL;
 
-	
-	
 	QSPIPollBufferTransfer(MyBuf);
+	data = MyBuf->rx_data[MyBuf->size - 1];
 	
+#if 0
+	printf ("\n----------start------------\n");
 	printf("Next is address %x data:\n", addr);
-	for (j=0; j < MyBuf->u8Size; j++)
+	for (j=0; j < MyBuf->size; j++)
 	{
-		printf("%x\t", MyBuf->pu16RxData[j]);
+		printf("%x\t", MyBuf->rx_data[j]);
 	}
-	data = MyBuf->pu16RxData[MyBuf->u8Size - 1];
-	printf ("\n--------------------------\n");
+	printf ("\n-----------end--------------\n");
+#endif
 	
 	QSPI_FreeFullBuffer(MyBuf);
 	
@@ -103,53 +100,55 @@ uint8 read_data_2515(uint8 addr)
 
 void request_send_2515(uint8 number)
 {
-    tQSPIBuffers *MyBuf;
+    tQSPIBuffers *MyBuf = NULL;
 	
-	MyBuf = QSPI_InitFullBuffer(1);
+    // mcp2515 has three transmit buffer 1, 2, 3
+    if(number < 4 && number > 0){
+    
+    	MyBuf = QSPI_InitFullBuffer(1);
 	
-	MyBuf->pu16TxData[0] = CAN_RTS | number;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
+    	MyBuf->tx_data[0] = CAN_RTS | number;
+    	MyBuf->cmd[0] = CMD_VAL;
 	
-	QSPIPollBufferTransfer(MyBuf);
-	QSPI_FreeFullBuffer(MyBuf);
+    	QSPIPollBufferTransfer(MyBuf);
+    	QSPI_FreeFullBuffer(MyBuf);
+    }
+    return;
 }
 
-void get_status_2515(void)
+uint8 get_status_2515(void)
 {
-    tQSPIBuffers *MyBuf;
+    tQSPIBuffers *MyBuf = NULL;
     int j;
+    uint8 buf;
 	
 	MyBuf = QSPI_InitFullBuffer(1);
 	
-	MyBuf->pu16TxData[0] = CAN_RD_STATUS;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
+	MyBuf->tx_data[0] = CAN_RD_STATUS;
+	MyBuf->cmd[0] = CMD_VAL;
 	
 	QSPIPollBufferTransfer(MyBuf);
-	
-	for (j=0; j < MyBuf->u8Size; j++)
+	buf = MyBuf->rx_data[0];
+#if 0
+	for (j=0; j < MyBuf->size; j++)
 	{
-		printf("%x\t", MyBuf->pu16RxData[j]);
+		printf("%x\t", MyBuf->rx_data[j]);
 	}
-	
-	printf ("\n--------------------------\n");
+#endif
 	QSPI_FreeFullBuffer(MyBuf);
+	
+	return buf;
 }
 
-void config_2515()
+void config_2515(uint8 brp, uint8 sjw, uint8 prop, uint8 ps1, uint8 ps2)
 {
-	uint8 brp = 1;
-	uint8 sjw = 0xc0;
-	uint8 prop = 0x2;
-	uint8 ps1 = (7 << 3);
-	uint8 ps2 = 0x7;
-	
 	// enter Configure Mode
 	bit_modify_2515(CANCTRL, 0xe7, 0x85);
-	read_data_2515(CANCTRL);
+	printf("CANCTRL = %x\n", read_data_2515(CANCTRL));
 	
 	// setting bit-timing
-	write_data_2515(CNF1, sjw | brp);
-	write_data_2515(CNF2, ps1 | prop);
+	write_data_2515(CNF1, SJW_BRP(sjw, brp));
+	write_data_2515(CNF2, PS1_PRP(ps1, prop));
 	write_data_2515(CNF3, ps2);
 	
 	// disable RTS and Buff-pin
@@ -165,19 +164,67 @@ void config_2515()
 	// enter Normal Mode
 	bit_modify_2515(CANCTRL, 0xe8, 0x0);
 	
-	read_data_2515(CANSTAT);
+	printf("CANSTAT = %x\n", read_data_2515(CANSTAT));
 
 }
 
 void test_2515()
 {
+	bit_modify_2515(CANCTRL, 0xe7, 0x85);
+	printf("CANCTRL = %x\n", read_data_2515(CANCTRL));
+	
 	write_data_2515(CNF1, 0x25);
 	write_data_2515(CNF2, 0x98);
-	//write_data_2515(CNF3, 0x3);
+	write_data_2515(CNF3, 0x3);
 	
-	read_data_2515(CNF1);
-	//read_data_2515(CNF2);
-	//read_data_2515(CNF3);
+	printf("%x\n", read_data_2515(CNF1));
+	printf("%x\n", read_data_2515(CNF2));
+	printf("%x\n", read_data_2515(CNF3));
 }
 
+void can_send_2515(uint32 id, uint8 *data, uint8 size)
+{
+	uint8 ret;
+	uint8 i;
+	
+	bit_modify_2515(TXB0CTRL, 0x8, 0x0);
+	
+	if(!(id >> 11)){
+		// Standard ID
+		write_data_2515(TXB0ID, GET_STDIDH(id));
+		write_data_2515(TXB0ID+1, GET_STDIDL(id));
+		write_data_2515(TXB0DLC, size);
+		for(i = 0; i < size; i++)
+			write_data_2515(TXB0DATA, data[i]);
+	}else{
+		// Extend ID
+	}
+	request_send_2515(1);
+	
+	while(ret = read_data_2515(TXB0CTRL) & 0x8){
+		printf("Failed data=%x\n", ret);
+	}
+	
+}
 
+uint8 can_recv_2515(uint32 *id, uint8 *buffer)
+{
+	uint8 ret;
+	uint8 dlc;
+	uint8 i;
+	
+	while(!(read_data_2515(CANINTF) & 0x1))
+		;
+
+	// Standard ID
+	*id = (read_data_2515(RXB0ID) << 3) | read_data_2515(RXB0ID+1)>>5;
+	
+	dlc = read_data_2515(RXB0DLC) & 0xff;
+	
+	for (i = 0; i < dlc; i++)
+		buffer[i] = read_data_2515(RXB0DATA + i);
+		
+	// clear flag
+	bit_modify_2515(CANINTF, 0x1, 0);
+	return dlc;
+}

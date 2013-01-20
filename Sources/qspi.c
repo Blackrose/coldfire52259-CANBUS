@@ -22,10 +22,6 @@ void (* QSPI_ABRT_ISR) (void);
 static void QSPISetTransferCommand (unsigned char u8CS, unsigned char u8Cont);
 static void QSPISetTransferData (unsigned char u8Data);
 
-void cs_select();
-void cs_deselect();
-
-/********************************************************************/
 /* 
  * Initialize the QSPI
  */
@@ -160,12 +156,8 @@ uint8 QSPIPollTransferByteRaw(uint8 u8Byte, uint8 u8CS)
     return MCF_QSPI_QDR;
 }
 
-/* Init a QSPI Buffer for SPI transfers
- *   1. Allocate memory for the Buffer
- *   2. Allocate memory for the Transmit Buffer
- *   3. Allocate memory for the Reception Buffer
- *   4. Allocate memory for the Commands
- *   5. Initialize flags 
+/* 
+ * Init a QSPI Buffer for SPI transfers
  */
 struct tQSPIBuffers* QSPI_InitFullBuffer(uint8 u8Size)
 {
@@ -173,36 +165,31 @@ struct tQSPIBuffers* QSPI_InitFullBuffer(uint8 u8Size)
     
     ptr=(tQSPIBuffers*)malloc(sizeof(tQSPIBuffers));
     //memset(ptr, 0, sizeof(tQSPIBuffers));
-    ptr->u8Size=u8Size;
+    ptr->size = u8Size;
     
-    ptr->pu16TxData=(uint16*)malloc((u8Size)*sizeof(uint16));
+    ptr->tx_data=(uint16*)malloc((u8Size)*sizeof(uint16));
     //memset(ptr->pu16TxData, 0, sizeof(uint16)*u8Size);
-    ptr->pu16RxData=(uint16*)malloc((u8Size)*sizeof(uint16));
-    memset(ptr->pu16RxData, 0, sizeof(uint16)*u8Size);
-    ptr->pu8Cmd=(uint16*)malloc((u8Size)*sizeof(uint16));
+    ptr->rx_data=(uint16*)malloc((u8Size)*sizeof(uint16));
+    memset(ptr->rx_data, 0, sizeof(uint16)*u8Size);
+    ptr->cmd=(uint16*)malloc((u8Size)*sizeof(uint16));
     //memset(ptr->pu8Cmd, 0, sizeof(uint8)*u8Size);
 
     return ptr;
 }
 
-/********************************************************************/
-/* Free QSPI Buffer for SPI transfers
- *   1. Free memory for the Transmit Buffer
- *   2. Free memory for the Reception Buffer
- *   3. Free memory for the Commands
- *   4. Release flags 
- *   5. Free Buffer memory
+
+/* 
+ * Free QSPI Buffer for SPI transfers
  */
 int8 QSPI_FreeFullBuffer(tQSPIBuffers *sQSPIBuff)
 {
-    free (sQSPIBuff->pu16TxData);
-    free (sQSPIBuff->pu16RxData);
-    free (sQSPIBuff->pu8Cmd);
+    free (sQSPIBuff->tx_data);
+    free (sQSPIBuff->rx_data);
+    free (sQSPIBuff->cmd);
     free (sQSPIBuff);
     return 0;
 }
 
-/********************************************************************/
 /* 
  * Transfer using Polling
  */
@@ -214,15 +201,15 @@ int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff)
     MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIF;
     
 
-    for (j=0; j < sQSPIBuff->u8Size; j++){
+    for (j=0; j < sQSPIBuff->size; j++){
     	MCF_QSPI_QAR = QSPI_COMMAND_ADDRESS+j;
-        MCF_QSPI_QDR = MCF_QSPI_QDR_DATA(sQSPIBuff->pu8Cmd[j]);
+        MCF_QSPI_QDR = MCF_QSPI_QDR_DATA(sQSPIBuff->cmd[j]);
         MCF_QSPI_QAR = QSPI_TRANSMIT_ADDRESS+j;
-        MCF_QSPI_QDR = sQSPIBuff->pu16TxData[j];
+        MCF_QSPI_QDR = sQSPIBuff->tx_data[j];
     }
     
     MCF_QSPI_QWR = (MCF_QSPI_QWR & MCF_QSPI_QWR_CSIV) |
-                        MCF_QSPI_QWR_ENDQP((sQSPIBuff->u8Size)-1) | MCF_QSPI_QWR_NEWQP(0);
+                        MCF_QSPI_QWR_ENDQP((sQSPIBuff->size)-1) | MCF_QSPI_QWR_NEWQP(0);
     
     MCF_QSPI_QDLYR |= MCF_QSPI_QDLYR_SPE;
         
@@ -230,16 +217,15 @@ int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff)
             ;
 
 	MCF_QSPI_QAR = QSPI_RECEIVE_ADDRESS;
-	for (j=0; j < sQSPIBuff->u8Size; j++){
+	for (j=0; j < sQSPIBuff->size; j++){
 		//printf("b:%x\n", sQSPIBuff->pu16RxData[j]);
-		sQSPIBuff->pu16RxData[j] = MCF_QSPI_QDR;
+		sQSPIBuff->rx_data[j] = MCF_QSPI_QDR;
 	}
     MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIF;
         
     return 0;
 }
 
-/********************************************************************/
 /* 
  * Set the transfer command	
  */
@@ -250,7 +236,6 @@ static void QSPISetTransferCommand (unsigned char u8CS, unsigned char u8Cont)
     return;
 }
 
-/********************************************************************/
 /* 
  * Transfer data by putting it into QDR	
  */
@@ -259,14 +244,3 @@ static void QSPISetTransferData (unsigned char u8Data)
     MCF_QSPI_QDR = u8Data;
     return;
 }
-
-void cs_select()
-{
-	MCF_GPIO_PORTQS &= ~(1 << 6);
-}
-
-void cs_deselect()
-{
-	MCF_GPIO_PORTQS |= (1 << 6);
-}
-

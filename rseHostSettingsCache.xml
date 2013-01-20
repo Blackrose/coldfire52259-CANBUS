@@ -65,7 +65,7 @@
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.STARTUP_PCI_DELAY" value="1"/>
 <property key="propertySet.[cw.dbg.ct.bareboard.ondemand].networkUDPPort" value="1234"/>
 <property key="hidden.applicator.com.freescale.debugger.applicator.launchconfiguration.lc.spi-can_MCF52259_Console_Internal_RAM_PnE U-MultiLink.proj.spi-can" value="com.freescale.debugger.applicator.launchconfiguration.lc.spi-can_MCF52259_Console_Internal_RAM_PnE U-MultiLink.proj.spi-can"/>
-<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1358407675937"/>
+<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1358646805750"/>
 <property key="propertySet.[cw.dbg.ct.bareboard.ondemand].executeReset" value="true"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="false"/>
 <property key="propertySet.[cw.dbg.ct.bareboard.ondemand].useNetworkUDPPort" value="false"/>
@@ -128,7 +128,7 @@
 <property key="propertySet.[cw.dbg.ct].Connection Type" value="com.pemicro.mcu.debug.connections.pne.cfv234"/>
 <property key="propertySet.[cw.dbg.ct.bareboard].enableStopTransferIOModelConfig" value="true"/>
 <property key="host.defaultEncoding" value=""/>
-<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1358407675937"/>
+<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1358646805765"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="false"/>
 <property key="hidden.applicator.com.freescale.debugger.applicator.launchconfiguration.lc.spi-can_MCF52259_Internal_RAM_PnE U-MultiLink.proj.spi-can" value="com.freescale.debugger.applicator.launchconfiguration.lc.spi-can_MCF52259_Internal_RAM_PnE U-MultiLink.proj.spi-can"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.RESET_DELAY" value="0"/>
@@ -191,7 +191,7 @@
 <property key="propertySet.[cw.dbg.ct.bareboard].enableStopTransferIOModelConfig" value="true"/>
 <property key="host.defaultEncoding" value=""/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.STARTUP_PCI_DELAY" value="1"/>
-<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1358407675953"/>
+<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1358646805765"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="false"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.RESET_DELAY" value="0"/>
 <property key="host.description" value="从pre-RSE启动配置生成"/>

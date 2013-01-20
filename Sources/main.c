@@ -15,13 +15,15 @@
 
 int main(void)
 {
+	uint8 sendbuf[1] = {0};
 	int counter = 0;
-    tQSPIBuffers *MyBuf;
     int8 i8Return = 0;
-    uint8 i = 0, j;
+    uint8 i = 6, j;
 	uint8 u8Continue = 0;
-	can_msg_t canmsg;
-	uint8 data;
+	can_frm_t canmsg;
+	uint8 recvbuf[8] = {0};
+	uint8 dlc;
+	uint32 id;
 
 #if (CONSOLE_IO_SUPPORT || ENABLE_UART_SUPPORT)
 	printf("Hello World in C++ from MCF52259 derivative on MCF52259 board\n\r");
@@ -30,78 +32,29 @@ int main(void)
 	printf("\"QSPI\" module examples on MCF52259\n");
 		
 	/* QSPI Basic Initialization */
-	QSPIInit(500, 0, 8, 5, 15);
+	QSPIInit(500, 0, 8, 2, 1);
 
-#if 0
-	MyBuf = QSPI_InitFullBuffer(1);
-	        
-	MyBuf->pu16TxData[0] = CAN_RESET;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
-
-	QSPIPollBufferTransfer(MyBuf);
-	QSPI_FreeFullBuffer(MyBuf);
-#else
 	reset_2515();
-	get_status_2515();
-	
-
-	//bit_modify_2515(CANCTRL, 0xe0, 0x0);
-
-#endif
-	
-#if 0
-	MyBuf = QSPI_InitFullBuffer(3);
-	MyBuf->pu16TxData[0] = CAN_WRITE;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
-	MyBuf->pu16TxData[1] = CNF2;
-	MyBuf->pu8Cmd[1] = CMD_VAL;
-	MyBuf->pu16TxData[2] = 0x26;
-	MyBuf->pu8Cmd[2] = CMD_VAL;
-	QSPIPollBufferTransfer(MyBuf);
-	QSPI_FreeFullBuffer(MyBuf);
-#endif
-	
+	printf("STAT = %x\n", get_status_2515());
+		
 	//test_2515();
 
-	config_2515();
+	// bit timing is 5, 7, 7
+	config_2515(1, 0x3, 4, 6, 6);
 
-	
 #if 0
-	MyBuf = QSPI_InitFullBuffer(3);
-	MyBuf->pu16TxData[0] = CAN_READ;
-	MyBuf->pu8Cmd[0] = CMD_VAL;
-	MyBuf->pu16TxData[1] = CNF1;
-	MyBuf->pu8Cmd[1] = CMD_VAL;
-	MyBuf->pu8Cmd[2] = CMD_VAL;
-	QSPIPollBufferTransfer(MyBuf);	
+	sendbuf[0] = 0x2;
+	can_send_2515(0x2, sendbuf, 1);
 	
-	for (j=0; j < MyBuf->u8Size; j++)
-	{
-		printf("%x\n", MyBuf->pu16TxData[j]);
-	}
-	printf("OK\n"); 
-	QSPI_FreeFullBuffer(MyBuf);
-#endif
-
-
-	
-#if 1
 	while(1){
 		i++;
-	bit_modify_2515(TXB0CTRL, 0x8, 0x0);
-
-		write_data_2515(TXB0ID, i);
-		write_data_2515(TXB0ID+1, 0x0);
-		write_data_2515(TXB0DLC, 1);
-		write_data_2515(TXB0DATA, 1);
-
-	request_send_2515(1);
-	
-	while(data = read_data_2515(TXB0CTRL) & 0x8){
-		printf("Failed data=%x\n", data);
+		can_send_2515(i, sendbuf, 1);
 	}
-	
-	}
+#else
+	dlc = can_recv_2515(&id, recvbuf);
+	printf("ID=%x, DLC=%d\n", id, dlc);
+	for(i = 0; i < dlc; i++)
+		printf("%x\t", recvbuf[i]);
 #endif
 	    
 	printf ("End of QSPI Examples\n");

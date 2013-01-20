@@ -20,13 +20,30 @@ typedef struct {
         unsigned char caninte;            //中断时能寄存器
 }CAN_STRUCT;                      /*控制寄存器结构*/
 
+/*
+ * CAN Frame Struct
+ */
 typedef struct {
-        unsigned char length;             //数据帧长度，data字节数
-        unsigned char id[4];              //ID
-        unsigned char data[8];            //数据
-} can_msg_t;                     /*数据帧结构*/
+	unsigned char id[2];              //ID of Frame
+    unsigned char length;             //Data length
+    unsigned char data[8];            //Data
+} can_frm_t;                     
 
+typedef union {
+	uint32 allid;
+	struct {
+		uint8 stdh;
+		uint8 stdlexth;
+		uint8 exth;
+		uint8 extl;
+	}std_ext_id;
+} can_id_t;
 
+#define SJW_BRP(x,y) ((x << 6) | y)
+#define PS1_PRP(x,y) ((1 << 7) | (x << 3) | y)
+
+#define GET_STDIDH(x) ((x & 0x7f8)>>3)
+#define GET_STDIDL(x) ((id & 0x7)<<5)
 
 /*
  * bit timing register
@@ -129,8 +146,11 @@ void reset_2515(void);
 uint8 read_data_2515(uint8);
 void bit_modify_2515(uint8 , uint8 , uint8);
 
-void config_2515();
+void config_2515(uint8 brp, uint8 sjw, uint8 prop, uint8 ps1, uint8 ps2);
 void request_send_2515(uint8);
-void get_status_2515(void);
+uint8 get_status_2515(void);
+
+void can_send_2515(uint32 id, uint8 *data, uint8 size);
+uint8 can_recv_2515(uint32 *id, uint8 *buffer);
 
 #endif /* MCP2515_H_ */

@@ -49,10 +49,10 @@
  */
 typedef struct tQSPIBuffers
 {
-    uint8 u8Size;         
-    uint16 *pu16TxData;
-    uint16 *pu16RxData;
-    uint16  *pu8Cmd;
+    uint8 size;         
+    uint16 *tx_data;
+    uint16 *rx_data;
+    uint16  *cmd;
 }tQSPIBuffers;
 
 
