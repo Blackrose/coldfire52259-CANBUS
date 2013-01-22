@@ -15,10 +15,10 @@
 
 int main(void)
 {
-	uint8 sendbuf[1] = {0};
+	uint8 sendbuf[8] = {1,1,1,1,1,1,1,1};
 	int counter = 0;
     int8 i8Return = 0;
-    uint8 i = 6, j;
+    uint16 i = 100, j;
 	uint8 u8Continue = 0;
 	can_frm_t canmsg;
 	uint8 recvbuf[8] = {0};
@@ -32,7 +32,7 @@ int main(void)
 	printf("\"QSPI\" module examples on MCF52259\n");
 		
 	/* QSPI Basic Initialization */
-	QSPIInit(500, 0, 8, 2, 1);
+	QSPIInit(5000, 0, 8, 2, 5);
 
 	reset_2515();
 	printf("STAT = %x\n", get_status_2515());
@@ -40,15 +40,16 @@ int main(void)
 	//test_2515();
 
 	// bit timing is 5, 7, 7
-	config_2515(1, 0x3, 4, 6, 6);
+	config_2515(1, 0x3, 3, 6, 7);
 
-#if 0
-	sendbuf[0] = 0x2;
-	can_send_2515(0x2, sendbuf, 1);
+#if 1
+	
+	if(can_send_2515(0x123, sendbuf, 4) < 0)
+		printf("send error\n");
 	
 	while(1){
 		i++;
-		can_send_2515(i, sendbuf, 1);
+		can_send_2515(i, sendbuf, 8);
 	}
 #else
 	dlc = can_recv_2515(&id, recvbuf);

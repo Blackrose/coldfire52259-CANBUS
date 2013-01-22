@@ -14,22 +14,27 @@
 
 void write_data_2515(uint8 addr, uint8 data)
 {
+	int i;
     tQSPIBuffers *MyBuf = NULL;
 	
 	MyBuf = QSPI_InitFullBuffer(3);
 	
 	MyBuf->tx_data[0] = CAN_WRITE;
 	MyBuf->cmd[0] = CMD_VAL;
+	
 	MyBuf->tx_data[1] = addr;
 	MyBuf->cmd[1] = CMD_VAL;
+	
 	MyBuf->tx_data[2] = data;
 	MyBuf->cmd[2] = CMD_VAL;
+
 	
 	QSPIPollBufferTransfer(MyBuf);
 	QSPI_FreeFullBuffer(MyBuf);
 	
 	return;
 }
+
 
 void reset_2515()
 {
@@ -70,7 +75,7 @@ uint8 read_data_2515(uint8 addr)
 {
     tQSPIBuffers *MyBuf;
     int j;
-    uint8 data;
+    uint8 data, ret;
 	
 	MyBuf = QSPI_InitFullBuffer(3);
 	
@@ -182,7 +187,7 @@ void test_2515()
 	printf("%x\n", read_data_2515(CNF3));
 }
 
-void can_send_2515(uint32 id, uint8 *data, uint8 size)
+uint8 can_send_2515(uint32 id, uint8 *data, uint8 size)
 {
 	uint8 ret;
 	uint8 i;
@@ -191,25 +196,31 @@ void can_send_2515(uint32 id, uint8 *data, uint8 size)
 	
 	if(!(id >> 11)){
 		// Standard ID
+		
 		write_data_2515(TXB0ID, GET_STDIDH(id));
 		write_data_2515(TXB0ID+1, GET_STDIDL(id));
 		write_data_2515(TXB0DLC, size);
-		for(i = 0; i < size; i++)
-			write_data_2515(TXB0DATA, data[i]);
+		
+		for(i = 0; i < size; i++){
+			write_data_2515(TXB0DATA+i, data[i]);
+		}
 	}else{
 		// Extend ID
 	}
 	request_send_2515(1);
 	
+	i = 1;
 	while(ret = read_data_2515(TXB0CTRL) & 0x8){
-		printf("Failed data=%x\n", ret);
+		i++;
+		if(i == 10)
+			return -1;
 	}
 	
+	return 0;
 }
 
 uint8 can_recv_2515(uint32 *id, uint8 *buffer)
 {
-	uint8 ret;
 	uint8 dlc;
 	uint8 i;
 	

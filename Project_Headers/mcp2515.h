@@ -42,8 +42,8 @@ typedef union {
 #define SJW_BRP(x,y) ((x << 6) | y)
 #define PS1_PRP(x,y) ((1 << 7) | (x << 3) | y)
 
-#define GET_STDIDH(x) ((x & 0x7f8)>>3)
-#define GET_STDIDL(x) ((id & 0x7)<<5)
+#define GET_STDIDH(x) ((uint16)(x & 0xff8) >> 3)
+#define GET_STDIDL(x) ((uint16)(id & 0x7) << 5)
 
 /*
  * bit timing register
@@ -141,7 +141,7 @@ typedef union {
 #define CAN_LOAD_TX		0x40
 
 void test_2515();
-void write_data_2515(uint8 ,uint8);
+void write_data_2515(uint8, uint8);
 void reset_2515(void);
 uint8 read_data_2515(uint8);
 void bit_modify_2515(uint8 , uint8 , uint8);
@@ -150,7 +150,7 @@ void config_2515(uint8 brp, uint8 sjw, uint8 prop, uint8 ps1, uint8 ps2);
 void request_send_2515(uint8);
 uint8 get_status_2515(void);
 
-void can_send_2515(uint32 id, uint8 *data, uint8 size);
+uint8 can_send_2515(uint32 id, uint8 *data, uint8 size);
 uint8 can_recv_2515(uint32 *id, uint8 *buffer);
 
 #endif /* MCP2515_H_ */

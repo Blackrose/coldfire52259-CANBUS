@@ -200,7 +200,6 @@ int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff)
     
     MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIF;
     
-
     for (j=0; j < sQSPIBuff->size; j++){
     	MCF_QSPI_QAR = QSPI_COMMAND_ADDRESS+j;
         MCF_QSPI_QDR = MCF_QSPI_QDR_DATA(sQSPIBuff->cmd[j]);
