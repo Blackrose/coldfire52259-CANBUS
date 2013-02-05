@@ -17,7 +17,7 @@ void write_data_2515(uint8 addr, uint8 data)
 	int i;
     tQSPIBuffers *MyBuf = NULL;
 	
-	MyBuf = QSPI_InitFullBuffer(3);
+	MyBuf = qspi_init_buffer(3);
 	
 	MyBuf->tx_data[0] = CAN_WRITE;
 	MyBuf->cmd[0] = CMD_VAL;
@@ -27,10 +27,11 @@ void write_data_2515(uint8 addr, uint8 data)
 	
 	MyBuf->tx_data[2] = data;
 	MyBuf->cmd[2] = CMD_VAL;
-
+	
+	MyBuf->stat = QSPI_BUFFSTAT_TXRDY;
 	
 	QSPIPollBufferTransfer(MyBuf);
-	QSPI_FreeFullBuffer(MyBuf);
+	qspi_free_buffer(MyBuf);
 	
 	return;
 }
@@ -40,12 +41,13 @@ void reset_2515()
 {
     tQSPIBuffers *MyBuf = NULL;
 	
-	MyBuf = QSPI_InitFullBuffer(1);
+	MyBuf = qspi_init_buffer(1);
 	MyBuf->tx_data[0] = CAN_RESET;
 	MyBuf->cmd[0] = CMD_VAL;
+	MyBuf->stat = QSPI_BUFFSTAT_TXRDY;
 	
 	QSPIPollBufferTransfer(MyBuf);
-	QSPI_FreeFullBuffer(MyBuf);
+	qspi_free_buffer(MyBuf);
 	
 	return;
 }
@@ -54,7 +56,7 @@ void bit_modify_2515(uint8 addr, uint8 mask, uint8 data)
 {
     tQSPIBuffers *MyBuf = NULL;
 	
-	MyBuf = QSPI_InitFullBuffer(4);
+	MyBuf = qspi_init_buffer(4);
 	
 	MyBuf->tx_data[0] = CAN_BIT_MODIFY;
 	MyBuf->cmd[0] = CMD_VAL;
@@ -64,9 +66,11 @@ void bit_modify_2515(uint8 addr, uint8 mask, uint8 data)
 	MyBuf->cmd[2] = CMD_VAL;
 	MyBuf->tx_data[3] = data;
 	MyBuf->cmd[3] = CMD_VAL;
+	
+	MyBuf->stat = QSPI_BUFFSTAT_TXRDY;
 		
 	QSPIPollBufferTransfer(MyBuf);
-	QSPI_FreeFullBuffer(MyBuf);
+	qspi_free_buffer(MyBuf);
 	
 	return;
 }
@@ -75,9 +79,9 @@ uint8 read_data_2515(uint8 addr)
 {
     tQSPIBuffers *MyBuf;
     int j;
-    uint8 data, ret;
+    uint16 tmp, ret;
 	
-	MyBuf = QSPI_InitFullBuffer(3);
+	MyBuf = qspi_init_buffer(3);
 	
 	MyBuf->tx_data[0] = CAN_READ;
 	MyBuf->cmd[0] = CMD_VAL;
@@ -85,8 +89,11 @@ uint8 read_data_2515(uint8 addr)
 	MyBuf->cmd[1] = CMD_VAL;
 	MyBuf->cmd[2] = CMD_VAL;
 
+	MyBuf->stat = QSPI_BUFFSTAT_RXRDY;
+	
 	QSPIPollBufferTransfer(MyBuf);
-	data = MyBuf->rx_data[MyBuf->size - 1];
+	
+	tmp = MyBuf->rx_data[2];
 	
 #if 0
 	printf ("\n----------start------------\n");
@@ -97,10 +104,9 @@ uint8 read_data_2515(uint8 addr)
 	}
 	printf ("\n-----------end--------------\n");
 #endif
-	
-	QSPI_FreeFullBuffer(MyBuf);
-	
-	return data;
+
+	qspi_free_buffer(MyBuf);
+	return tmp;
 }
 
 void request_send_2515(uint8 number)
@@ -110,13 +116,15 @@ void request_send_2515(uint8 number)
     // mcp2515 has three transmit buffer 1, 2, 3
     if(number < 4 && number > 0){
     
-    	MyBuf = QSPI_InitFullBuffer(1);
+    	MyBuf = qspi_init_buffer(1);
 	
     	MyBuf->tx_data[0] = CAN_RTS | number;
     	MyBuf->cmd[0] = CMD_VAL;
+    	
+    	MyBuf->stat = QSPI_BUFFSTAT_TXRDY;
 	
     	QSPIPollBufferTransfer(MyBuf);
-    	QSPI_FreeFullBuffer(MyBuf);
+    	qspi_free_buffer(MyBuf);
     }
     return;
 }
@@ -127,10 +135,12 @@ uint8 get_status_2515(void)
     int j;
     uint8 buf;
 	
-	MyBuf = QSPI_InitFullBuffer(1);
+	MyBuf = qspi_init_buffer(1);
 	
 	MyBuf->tx_data[0] = CAN_RD_STATUS;
 	MyBuf->cmd[0] = CMD_VAL;
+	
+	MyBuf->stat = QSPI_BUFFSTAT_RXRDY;
 	
 	QSPIPollBufferTransfer(MyBuf);
 	buf = MyBuf->rx_data[0];
@@ -140,13 +150,14 @@ uint8 get_status_2515(void)
 		printf("%x\t", MyBuf->rx_data[j]);
 	}
 #endif
-	QSPI_FreeFullBuffer(MyBuf);
+	qspi_free_buffer(MyBuf);
 	
 	return buf;
 }
 
 void config_2515(uint8 brp, uint8 sjw, uint8 prop, uint8 ps1, uint8 ps2)
 {
+	
 	// enter Configure Mode
 	bit_modify_2515(CANCTRL, 0xe7, 0x85);
 	printf("CANCTRL = %x\n", read_data_2515(CANCTRL));
@@ -165,6 +176,9 @@ void config_2515(uint8 brp, uint8 sjw, uint8 prop, uint8 ps1, uint8 ps2)
 	
 	write_data_2515(RXF0SIDH, 0x00);
 	write_data_2515(RXF0SIDL, 0X00);
+	
+	// enable interrupt
+	write_data_2515(CANINTE, 0x5);
 	
 	// enter Normal Mode
 	bit_modify_2515(CANCTRL, 0xe8, 0x0);
@@ -194,6 +208,10 @@ uint8 can_send_2515(uint32 id, uint8 *data, uint8 size)
 	
 	bit_modify_2515(TXB0CTRL, 0x8, 0x0);
 	
+	do{
+		ret = read_data_2515(CANINTF) & 0x4;
+	}while(ret);
+
 	if(!(id >> 11)){
 		// Standard ID
 		
@@ -208,13 +226,20 @@ uint8 can_send_2515(uint32 id, uint8 *data, uint8 size)
 		// Extend ID
 	}
 	request_send_2515(1);
-	
+
 	i = 1;
-	while(ret = read_data_2515(TXB0CTRL) & 0x8){
-		i++;
-		if(i == 10)
+	do{
+		ret = read_data_2515(CANINTF) & 0x4;
+		if(ret)
+			bit_modify_2515(CANINTF, 0x4, 0);
+		
+		if(i++ == 10)
 			return -1;
-	}
+		
+	}while(ret);
+	
+	//bit_modify_2515(CANINTF, 0x4, 0);
+
 	
 	return 0;
 }
@@ -238,4 +263,10 @@ uint8 can_recv_2515(uint32 *id, uint8 *buffer)
 	// clear flag
 	bit_modify_2515(CANINTF, 0x1, 0);
 	return dlc;
+}
+
+void enable_irq_2515(void)
+{
+	// set gpio for irq3
+	MCF_GPIO_PNQPAR |= (1 << 7);
 }

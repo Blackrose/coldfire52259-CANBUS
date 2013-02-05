@@ -15,17 +15,17 @@
 /*
  * Initialize Variables     
  */
-tQSPIBuffers *sQSPIInterruptBuf;
+tQSPIBuffers *qspi_crt_buf;
 
-void (* QSPI_SPIF_ISR) (void);
-void (* QSPI_ABRT_ISR) (void);
-static void QSPISetTransferCommand (unsigned char u8CS, unsigned char u8Cont);
-static void QSPISetTransferData (unsigned char u8Data);
+void handle_qspi_int(void);
+uint8 qspi_isfin(void);
+uint8 qspi_setbits(uint8 u8NumberofBits);
+uint8 qspi_setbaudrate(uint16 u16Baudrate);
 
 /* 
  * Initialize the QSPI
  */
-int8 QSPIInit(uint16 u16Baudrate, uint8 u8ClkAttrib, 
+int8 qspi_init(uint16 u16Baudrate, uint8 u8ClkAttrib, 
               uint8 u8Bits, uint8 u8ClkDly, 
               uint8 u8DlyAft) 
 {
@@ -37,18 +37,17 @@ int8 QSPIInit(uint16 u16Baudrate, uint8 u8ClkAttrib,
 		//MCF_GPIO_PQSPAR_QSPI_CS0_CS0 |
 		//MCF_GPIO_PQSPAR_QSPI_CS2_CS2 |
 		MCF_GPIO_PQSPAR_QSPI_CS3_CS3 ;
-    //MCF_GPIO_PORTQS = ~(0x0);
     //MCF_GPIO_PQSPAR = 0x1555;
 
     /* Set as a Master always and set CPOL & CPHA */
-    MCF_QSPI_QMR = (MCF_QSPI_QMR_MSTR |         
-                        ((u8ClkAttrib & 0x3) << 8));    
+    MCF_QSPI_QMR = (MCF_QSPI_QMR_MSTR | 
+    		((u8ClkAttrib & 0x3) << 8));    
     
-    i8Ret |= QSPISetBits(u8Bits);
-    i8Ret |= QSPISetBaudrate(u16Baudrate);
+    i8Ret |= qspi_setbits(u8Bits);
+    i8Ret |= qspi_setbaudrate(u16Baudrate);
     
     MCF_QSPI_QDLYR = (MCF_QSPI_QDLYR_QCD(u8ClkDly) | 
-                          MCF_QSPI_QDLYR_DTL(u8DlyAft));
+    		MCF_QSPI_QDLYR_DTL(u8DlyAft));
     /*
     MCF_QSPI_QIR = (MCF_QSPI_QIR_WCEFB | MCF_QSPI_QIR_ABRTB |
                           MCF_QSPI_QIR_ABRTL | MCF_QSPI_QIR_WCEF |               
@@ -56,20 +55,43 @@ int8 QSPIInit(uint16 u16Baudrate, uint8 u8ClkAttrib,
     */
 
     MCF_QSPI_QWR = MCF_QSPI_QWR_CSIV;
-    
-    // disable interrupt
-    MCF_QSPI_QIR = 0 | 0x1;
-    //MCF_INTC0_ICR18 = MCF_INTC_ICR_IL(3) | MCF_INTC_ICR_IP(6);
-    //MCF_INTC0_IMRH &= (0);
-    //MCF_INTC0_IMRL &= (MCF_INTC_IMRL_INT_MASK18 | MCF_INTC_IMRL_MASKALL);
+
+    // enable interrupt
+    MCF_INTC0_IMRH &= ~(0);
+    MCF_INTC0_IMRL &= ~(MCF_INTC_IMRL_INT_MASK18 | MCF_INTC_IMRL_MASKALL);
+    MCF_INTC0_ICR18 = MCF_INTC_ICR_IL(7) | MCF_INTC_ICR_IP(7);
+    MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIFE | MCF_QSPI_QIR_SPIF;
 
     return 0;
+}
+
+void PIT1_Init(void)
+{
+  
+	//Configure the interrupt level and priority
+	MCF_PIT1_PCSR |= MCF_PIT_PCSR_PIF; //Clear the flag  
+	
+	MCF_PIT1_PCSR = 0|MCF_PIT_PCSR_PRE(0) | MCF_PIT_PCSR_RLD | 
+			MCF_PIT_PCSR_PIE | MCF_PIT_PCSR_OVW;
+	
+	//参阅PIT章节具体的计算公式 1ms定时  
+	MCF_PIT1_PMR = MCF_PIT_PMR_PM(19);
+	
+	//PIT1初始化
+	MCF_INTC0_ICR56 = MCF_INTC_ICR_IL(6) | MCF_INTC_ICR_IP(6);
+	
+	//Open the local mask 参阅中断章节
+	MCF_INTC0_IMRH &= ~MCF_INTC_IMRH_INT_MASK56;    
+	MCF_INTC0_IMRL &= ~MCF_INTC_IMRL_MASKALL; // Open the maskall
+
+	
+	MCF_PIT1_PCSR |= MCF_PIT_PCSR_EN;//使能
 }
 
 /* 
  * Set the Baudrate
  */
-int8 QSPISetBaudrate(uint16 u16Baudrate)
+uint8 qspi_setbaudrate(uint16 u16Baudrate)
 {
     uint16 u16Baud; 
     
@@ -78,7 +100,7 @@ int8 QSPISetBaudrate(uint16 u16Baudrate)
     if ((u16Baud> 1 ) && (u16Baud < 255)){
          MCF_QSPI_QMR &= ~MCF_QSPI_QMR_BAUD(0xFF);
          MCF_QSPI_QMR |= MCF_QSPI_QMR_BAUD((uint8)u16Baud);
-         printf("Baud rate %d\n", u16Baud);
+         printf("Baud rate div = %d\n", u16Baud);
         return 0;
     }
     else
@@ -88,7 +110,7 @@ int8 QSPISetBaudrate(uint16 u16Baudrate)
 /* 
  * Set Bits
  */
-int8 QSPISetBits(uint8 u8NumberofBits)
+uint8 qspi_setbits(uint8 u8NumberofBits)
 {
     uint8 u8Bits; 
     
@@ -104,76 +126,24 @@ int8 QSPISetBits(uint8 u8NumberofBits)
 }
 
 /* 
- * Send Byte
- */
-void QSPISendByteRaw(uint8 u8Byte, uint8 u8CS)
-{
-
-    MCF_QSPI_QAR = QSPI_COMMAND_ADDRESS;
-    QSPISetTransferCommand(u8CS, 0);
-    MCF_QSPI_QAR = QSPI_TRANSMIT_ADDRESS;
-    QSPISetTransferData(u8Byte);
-    
-    MCF_QSPI_QWR =  MCF_QSPI_QWR_CSIV|MCF_QSPI_QWR_ENDQP(0x00)|MCF_QSPI_QWR_NEWQP(0x00);
-    MCF_QSPI_QDLYR |= MCF_QSPI_QDLYR_SPE;
-    
-}
-
-/* 
- * Send Word
- */
-void QSPISendWordRaw(uint16 u16Word, uint8 u8CS)
-{
-
-    MCF_QSPI_QAR = QSPI_COMMAND_ADDRESS;
-    QSPISetTransferCommand(u8CS, 0);
-    MCF_QSPI_QAR = QSPI_TRANSMIT_ADDRESS;
-    MCF_QSPI_QDR = u16Word;
-    
-    MCF_QSPI_QWR =  MCF_QSPI_QWR_CSIV|MCF_QSPI_QWR_ENDQP(0x00)|MCF_QSPI_QWR_NEWQP(0x00);
-    MCF_QSPI_QDLYR |= MCF_QSPI_QDLYR_SPE;
-    
-}
-
-/* 
- * Send Byte via Polling
- */
-uint8 QSPIPollTransferByteRaw(uint8 u8Byte, uint8 u8CS)
-{
-
-    MCF_QSPI_QAR = QSPI_COMMAND_ADDRESS;
-    QSPISetTransferCommand(u8CS, 0);
-    MCF_QSPI_QAR = QSPI_TRANSMIT_ADDRESS;
-    QSPISetTransferData(u8Byte);
-    
-    MCF_QSPI_QWR =  MCF_QSPI_QWR_CSIV|MCF_QSPI_QWR_ENDQP(0x01)|MCF_QSPI_QWR_NEWQP(0x00);
-    MCF_QSPI_QDLYR |= MCF_QSPI_QDLYR_SPE;
-    
-    while (!(MCF_QSPI_QIR & MCF_QSPI_QIR_SPIF))
-        ;
-    
-    MCF_QSPI_QAR = QSPI_RECEIVE_ADDRESS;
-    return MCF_QSPI_QDR;
-}
-
-/* 
  * Init a QSPI Buffer for SPI transfers
  */
-struct tQSPIBuffers* QSPI_InitFullBuffer(uint8 u8Size)
+struct tQSPIBuffers* qspi_init_buffer(uint8 u8Size)
 {
     tQSPIBuffers *ptr;
     
     ptr=(tQSPIBuffers*)malloc(sizeof(tQSPIBuffers));
-    //memset(ptr, 0, sizeof(tQSPIBuffers));
+    memset(ptr, 0, sizeof(tQSPIBuffers));
     ptr->size = u8Size;
     
     ptr->tx_data=(uint16*)malloc((u8Size)*sizeof(uint16));
-    //memset(ptr->pu16TxData, 0, sizeof(uint16)*u8Size);
+    memset(ptr->tx_data, 0, sizeof(uint16)*u8Size);
     ptr->rx_data=(uint16*)malloc((u8Size)*sizeof(uint16));
     memset(ptr->rx_data, 0, sizeof(uint16)*u8Size);
     ptr->cmd=(uint16*)malloc((u8Size)*sizeof(uint16));
-    //memset(ptr->pu8Cmd, 0, sizeof(uint8)*u8Size);
+    memset(ptr->cmd, 0, sizeof(uint8)*u8Size);
 
+    ptr->stat = QSPI_BUFFSTAT_IDLE;
     return ptr;
 }
 
@@ -181,7 +151,7 @@ struct tQSPIBuffers* QSPI_InitFullBuffer(uint8 u8Size)
 /* 
  * Free QSPI Buffer for SPI transfers
  */
-int8 QSPI_FreeFullBuffer(tQSPIBuffers *sQSPIBuff)
+int8 qspi_free_buffer(tQSPIBuffers *sQSPIBuff)
 {
     free (sQSPIBuff->tx_data);
     free (sQSPIBuff->rx_data);
@@ -200,46 +170,74 @@ int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff)
     
     MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIF;
     
+    qspi_crt_buf = sQSPIBuff;
+    
     for (j=0; j < sQSPIBuff->size; j++){
     	MCF_QSPI_QAR = QSPI_COMMAND_ADDRESS+j;
         MCF_QSPI_QDR = MCF_QSPI_QDR_DATA(sQSPIBuff->cmd[j]);
         MCF_QSPI_QAR = QSPI_TRANSMIT_ADDRESS+j;
         MCF_QSPI_QDR = sQSPIBuff->tx_data[j];
     }
-    
+        
     MCF_QSPI_QWR = (MCF_QSPI_QWR & MCF_QSPI_QWR_CSIV) |
-                        MCF_QSPI_QWR_ENDQP((sQSPIBuff->size)-1) | MCF_QSPI_QWR_NEWQP(0);
+		MCF_QSPI_QWR_ENDQP((sQSPIBuff->size)-1) | 
+		MCF_QSPI_QWR_NEWQP(0);
     
     MCF_QSPI_QDLYR |= MCF_QSPI_QDLYR_SPE;
         
-	while (!(MCF_QSPI_QIR & MCF_QSPI_QIR_SPIF))
-            ;
-
-	MCF_QSPI_QAR = QSPI_RECEIVE_ADDRESS;
-	for (j=0; j < sQSPIBuff->size; j++){
-		//printf("b:%x\n", sQSPIBuff->pu16RxData[j]);
-		sQSPIBuff->rx_data[j] = MCF_QSPI_QDR;
-	}
-    MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIF;
-        
+    while(!qspi_isfin()){
+    	if(j++ == 100){
+    		printf("Transfer error\n");
+    		return -1;
+    	}
+    }
+    
     return 0;
 }
 
 /* 
- * Set the transfer command	
+ * Check to transfer queue is finish	
  */
-static void QSPISetTransferCommand (unsigned char u8CS, unsigned char u8Cont)
+uint8 qspi_isfin(void)
 {
-    MCF_QSPI_QDR = (u8Cont << 15)|(MCF_QSPI_QDR_BITSE | MCF_QSPI_QDR_DT |
-                        MCF_QSPI_QDR_DSCK | ~(MCF_QSPI_QDR_QSPI_CS3));
-    return;
+    if (qspi_crt_buf->stat == QSPI_BUFFSTAT_FIN) 
+        return 1;
+    else
+        return 0;
 }
 
-/* 
- * Transfer data by putting it into QDR	
- */
-static void QSPISetTransferData (unsigned char u8Data)
+void handle_qspi_int(void)
 {
-    MCF_QSPI_QDR = u8Data;
-    return;
+	int j;
+	
+	switch(qspi_crt_buf->stat){
+	case QSPI_BUFFSTAT_TXRDY:
+		qspi_crt_buf->stat = QSPI_BUFFSTAT_FIN;
+		break;
+	case QSPI_BUFFSTAT_RXRDY:
+		{
+			MCF_QSPI_QAR = QSPI_RECEIVE_ADDRESS;
+			for (j=0; j < qspi_crt_buf->size; j++)
+			{
+				qspi_crt_buf->rx_data[j] = MCF_QSPI_QDR;
+			}
+		}
+		qspi_crt_buf->stat = QSPI_BUFFSTAT_FIN;
+		break;
+	default:
+		break;
+	}
+}
+
+__declspec(interrupt) void qspi_isr(void)
+{		
+	MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIF;
+	
+	handle_qspi_int();
+}
+
+__declspec(interrupt) 
+void PIT1_Interrupt(void){
+	MCF_PIT1_PCSR |= MCF_PIT_PCSR_PIF;
+	printf("i gott\n");
 }

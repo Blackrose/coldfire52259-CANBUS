@@ -11,7 +11,6 @@
 #endif
 
 #include "mcp2515.h"
-//#include "qspi.h"
 
 int main(void)
 {
@@ -32,15 +31,16 @@ int main(void)
 	printf("\"QSPI\" module examples on MCF52259\n");
 		
 	/* QSPI Basic Initialization */
-	QSPIInit(5000, 0, 8, 2, 5);
+	qspi_init(5000, 0, 8, 2, 5);
+	//PIT1_Init();
 
 	reset_2515();
-	printf("STAT = %x\n", get_status_2515());
+	//printf("STAT = %x\n", get_status_2515());
 		
 	//test_2515();
 
 	// bit timing is 5, 7, 7
-	config_2515(1, 0x3, 3, 6, 7);
+	config_2515(1, 0x3, 4, 6, 6);
 
 #if 1
 	
@@ -49,7 +49,8 @@ int main(void)
 	
 	while(1){
 		i++;
-		can_send_2515(i, sendbuf, 8);
+		if(can_send_2515(i, sendbuf, 8) < 0)
+			printf("send data error\n");
 	}
 #else
 	dlc = can_recv_2515(&id, recvbuf);

@@ -7,7 +7,6 @@
 
 #ifndef _MCF_EXCEPTIONS_H
 #define _MCF_EXCEPTIONS_H
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -75,6 +74,7 @@ asm __declspec(register_abi) void TrapHandler_printf(void);
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif   /* _MCF_EXCEPTIONS_H */
 

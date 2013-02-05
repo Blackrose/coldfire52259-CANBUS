@@ -1,0 +1,22 @@
+Sources/console_io_cf_c.obj: C:\Documents\ and\ Settings\chen\workspace\spi-can\Sources\console_io_cf.c \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\lib_ewl.prefix \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\common.prefix \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\ewl_c_version.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\ansi_parms.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\ewlGlobals.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\coldfire\ansi_prefix.CF.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\os_enum.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\console_io.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\stdio.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\cstdio \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\stddef.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\cstddef \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\null.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\size_t.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\wchar_t.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\ewl_lib_ext1.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\ewl_rsize_t.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\eof.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\va_list.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\file_struc.h \
+	D:\Program\ Files\Freescale\CW\ MCU\ v10.1\MCU\ColdFire_Support\ewl\EWL_C\include\stdio_api.h 

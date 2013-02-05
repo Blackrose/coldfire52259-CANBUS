@@ -39,6 +39,7 @@
 #define QSPI_BUFFSTAT_TXRDY     0x01
 #define QSPI_BUFFSTAT_BUSY      0x02
 #define QSPI_BUFFSTAT_RXRDY     0x03
+#define QSPI_BUFFSTAT_FIN   	0x05
 #define QSPI_BUFFSTAT_ABORTED   0x04
 #define QSPI_TRANSMIT_ADDRESS 	0x00
 #define QSPI_RECEIVE_ADDRESS 	0x10
@@ -53,32 +54,29 @@ typedef struct tQSPIBuffers
     uint16 *tx_data;
     uint16 *rx_data;
     uint16  *cmd;
+    uint8 stat;
 }tQSPIBuffers;
 
 
-/********************************************************************/
 /*
  * Functions provided by this driver
  */
-int8 QSPIInit(uint16 u16Baudrate, uint8 u8ClkAttrib, 
+int8 qspi_init(uint16 u16Baudrate, uint8 u8ClkAttrib, 
               uint8 u8Bits, uint8 u8ClkDly, uint8 u8DlyAft);
-int8 QSPISetBaudrate(uint16 u16Baudrate);
-void QSPISendByteRaw(uint8 u8Byte, uint8 u8CS);
-void QSPISendWordRaw(uint16 u16Word, uint8 u8CS);
-uint8 QSPIPollTransferByteRaw(uint8 u8Byte, uint8 u8CS);
-int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff);
-int8 QSPISetBits(uint8 u8NumberofBits);
+void PIT1_Init(void);
 
-struct tQSPIBuffers* QSPI_InitFullBuffer(uint8 u8Size);
-struct tQSPIBuffers* QSPI_InitSimpleBuffer(uint8 u8Size, uint16 *pu16TxData, uint16 *pu16RxData);
-int8 QSPI_FreeFullBuffer(tQSPIBuffers *sQSPIBuff);
-int8 QSPI_FreeSimpleBuffer(tQSPIBuffers *sQSPIBuff);
+int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff);
+
+struct tQSPIBuffers* qspi_init_buffer(uint8 u8Size);
+int8 qspi_free_buffer(tQSPIBuffers *sQSPIBuff);
 
 int8 QSPIIntBufferTransfer(tQSPIBuffers *sQSPIBuff);
 
-uint8 QSPI_IntStat(void);
-
 void QSPI_Enable_Abort(void);
 void QSPI_Disable_Abort(void);
+
+
+__declspec(interrupt) void qspi_isr(void);
+__declspec(interrupt) void PIT1_Interrupt(void);
 
 #endif /* _QSPI_H_ */

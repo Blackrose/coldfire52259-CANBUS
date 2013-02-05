@@ -153,4 +153,6 @@ uint8 get_status_2515(void);
 uint8 can_send_2515(uint32 id, uint8 *data, uint8 size);
 uint8 can_recv_2515(uint32 *id, uint8 *buffer);
 
+void enable_irq_2515(void);
+
 #endif /* MCP2515_H_ */

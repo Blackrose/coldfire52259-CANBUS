@@ -1,0 +1,149 @@
+
+
+#>00001000          ___heap_size (linker command file)
+#>00001000          ___stack_size (linker command file)
+#>40000000          ___IPSBAR (linker command file)
+#>20000000          ___RAMBAR (linker command file)
+#>00010000          ___RAMBAR_SIZE (linker command file)
+#>00000000          ___FLASHBAR (linker command file)
+#>00080000          ___FLASHBAR_SIZE (linker command file)
+#>2000FFFC          ___SP_AFTER_RESET (linker command file)
+
+# .userram
+
+# .code
+
+# .vectorram
+
+# .vectors
+  20000500 00000400 .vectortable _vect	(exceptions_c.obj)
+
+# .text
+  20000900 00000008 .text   __initialize_system	(startcf_c.obj)
+  20000908 0000006C .text   __copy_rom_section	(startcf_c.obj)
+  20000974 0000005C .text   __copy_rom_sections_to_ram	(startcf_c.obj)
+  200009D0 00000004 .text   _ExitProcess	(startcf_c.obj)
+  200009D4 0000022A .text   clear_mem	(startcf_c.obj)
+  20000BFE 0000009A .text   _startup	(startcf_c.obj)
+  20000C98 000000EE .text   qspi_init	(qspi_c.obj)
+  20000D86 000000A4 .text   qspi_setbaudrate	(qspi_c.obj)
+  20000E2A 0000007E .text   qspi_setbits	(qspi_c.obj)
+  20000EA8 000000F4 .text   qspi_init_buffer	(qspi_c.obj)
+  20000F9C 00000042 .text   qspi_free_buffer	(qspi_c.obj)
+  20000FDE 0000013E .text   QSPIPollBufferTransfer	(qspi_c.obj)
+  2000111C 00000020 .text   qspi_isfin	(qspi_c.obj)
+  2000113C 00000082 .text   handle_qspi_int	(qspi_c.obj)
+  200011BE 0000003E .text   qspi_isr	(qspi_c.obj)
+  200011FC 00000046 .text   PIT1_Interrupt	(qspi_c.obj)
+  20001242 000000A4 .text   write_data_2515	(mcp2515_c.obj)
+  200012E6 00000058 .text   reset_2515	(mcp2515_c.obj)
+  2000133E 000000CA .text   bit_modify_2515	(mcp2515_c.obj)
+  20001408 0000009C .text   read_data_2515	(mcp2515_c.obj)
+  200014A4 0000007E .text   request_send_2515	(mcp2515_c.obj)
+  20001522 000000DE .text   config_2515	(mcp2515_c.obj)
+  20001600 0000012A .text   can_send_2515	(mcp2515_c.obj)
+  2000172A 000000BA .text   main	(main_c.obj)
+  200017E4 00000004 .text   TrapHandler_printf	(exceptions_c.obj)
+  200017E8 00000200 .text   mcf_exception_handler	(exceptions_c.obj)
+  200019E8 00000020 .text   asm_exception_handler	(exceptions_c.obj)
+  20001A08 00000008 .text   mcf5xxx_wr_vbr	(exceptions_c.obj)
+  20001A10 00000062 .text   initialize_exceptions	(exceptions_c.obj)
+  20001A72 00000016 .text   TRKAccessFile	(console_io_cf_c.obj)
+  20001A88 0000008A .text   __access_file	(console_io_cf_c.obj)
+  20001B12 0000002C .text   __write_console	(console_io_cf_c.obj)
+  20001B3E 0000003E .text   pll_init	(MCF52259_sysinit_c.obj)
+  20001B7C 00000022 .text   scm_init	(MCF52259_sysinit_c.obj)
+  20001B9E 0000003E .text   __initialize_hardware	(MCF52259_sysinit_c.obj)
+  20001BDC 00000038 .text   brk	(libc.a alloc.o        )
+  20001C14 0000002A .text   sbrk	(libc.a alloc.o        )
+  20001C3E 00000182 .text   malloc	(libc.a alloc.o        )
+  20001DC0 0000000C .text   free	(libc.a alloc.o        )
+  20001DCC 00000010 .text   memset	(libc.a mem.o          )
+  20001DDC 00000020 .text   memchr	(libc.a mem.o          )
+  20001DFC 00000088 .text   __fill_mem	(libc.a mem_funcs.o    )
+  20001E84 00000020 .text   __ConsoleWrite	(libc.a printf.o       )
+  20001EA4 00000022 .text   printf_console	(libc.a printf.o       )
+  20001EC8 00000010 .text   strlen	(libc.a string.o       )
+  20001ED8 00000028 .text   strchr	(libc.a string.o       )
+  20001F00 0000001E .text   isdigit	(libc.a strtold.o      )
+  20001F1E 000002A8 .text   parse_format	(libc.a printformat_.o )
+  200021C6 0000002A .text   set_base	(libc.a printformat_.o )
+  200021F0 000000D6 .text   justify_conversion	(libc.a printformat_.o )
+  200022C6 00000114 .text   long2str	(libc.a printformat_.o )
+  200023DA 000003F0 .text   __pformatter	(libc.a printformat_.o )
+  200027CA 0000001C .text   __call_static_initializers	(librt.a cf_staticinitia)
+  200027E6 0000002C .text   __destroy_global_chain	(librt.a cf_staticinitia)
+  20002812 00000012 .text   __clear	(librt.a cf_runtime.o   )
+  20002824 0000000C .text   _ewl_exit	(librt.a abort_exit.o   )
+  20002830 00000014 .rodata @57	(qspi_c.obj)
+  20002844 00000010 .rodata @110	(qspi_c.obj)
+  20002854 00000008 .rodata @149	(qspi_c.obj)
+  2000285C 0000000E .rodata @114	(mcp2515_c.obj)
+  2000286A 0000000E .rodata @115	(mcp2515_c.obj)
+  20002878 00000008 .rodata @33	(main_c.obj)
+  20002880 00000040 .rodata @56	(main_c.obj)
+  200028C0 00000024 .rodata @57	(main_c.obj)
+  200028E4 00000081 .rodata _ctypes_	(libc.a ctype.o        )
+  20002965 00000001 .rodata @609	(libc.a printformat_.o )
+#>20002968          ___ROM_AT (linker command file)
+#>20002968          ___DATA_ROM (linker command file)
+
+# .data
+#>20009100          ___DATA_RAM (linker command file)
+#>20009100          __exception_table_start__ (linker command file)
+# Exception index
+  20009100 00000000         Exception Table Index	()
+#>20009100          __exception_table_end__ (linker command file)
+#>20009100          ___sinit__ (linker command file)
+# Linker generated symbols
+  20009100 00000004         static initializer	(linker generated)
+#>20009104          __START_DATA (linker command file)
+#>20009104          __END_DATA (linker command file)
+#>20009104          __START_SDATA (linker command file)
+  20009104 00000004 .sdata  tail	(libc.a alloc.o        )
+  20009108 00000004 .sdata  __break	(libc.a alloc.o        )
+#>2000910C          __END_SDATA (linker command file)
+#>2000910C          ___DATA_END (linker command file)
+#>2000910C          __SDA_BASE (linker command file)
+
+# .bss
+#>2000910C          ___BSS_START (linker command file)
+#>2000910C          __START_SBSS (linker command file)
+  2000910C 00000004 .sbss   head	(libc.a alloc.o        )
+#>20009110          __END_SBSS (linker command file)
+#>20009110          __START_BSS (linker command file)
+  20009110 00000004 .bss    qspi_crt_buf	(qspi_c.obj)
+  20009114 00000004 .bss    __global_destructor_chain	(librt.a cf_staticinitia)
+#>20009118          __END_BSS (linker command file)
+#>20009118          ___BSS_END (linker command file)
+
+# .custom
+#>20009118          ___HEAP_START (linker command file)
+#>20009118          ___heap_addr (linker command file)
+#>2000A118          ___HEAP_END (linker command file)
+#>2000A118          ___SP_END (linker command file)
+#>2000B118          ___SP_INIT (linker command file)
+#>20000000          ___VECTOR_RAM (linker command file)
+#>2000B118          __SP_INIT (linker command file)
+#>2000A118          ___mem_limit (linker command file)
+#>00000010          ___stack_safety (linker command file)
+#>20002974          _romp_at (linker command file)
+
+# .romp
+#>20002974          __S_romp (linker command file)
+
+
+# Memory map:
+  v_addr   p_addr   size     name
+  20000000 20000000 00000000 .vectorram vectorram
+  20000500 20000500 00000000 .code      code
+  20000500 20000500 00000400 .vectors   code
+  20000900 20000900 00002068 .text      code
+  20009100 20009100 00000000 .userram   userram
+  20009100 20002968 0000000C .data      userram
+  2000910C 2000910C 0000000C .bss       userram
+  20009118 20009118 00000000 .custom    userram
+  20009118 20002974 00000018 .romp      userram
+
+# Link start time: Fri Jan 25 11:45:44 2013
+# Link end time: Fri Jan 25 11:45:44 2013

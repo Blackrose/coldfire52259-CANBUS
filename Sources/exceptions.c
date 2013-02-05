@@ -8,6 +8,8 @@
 #include "support_common.h"
 #include <ansi_parms.h>
 
+extern __declspec(interrupt) void PIT1_Interrupt(void);
+extern __declspec(interrupt) void qspi_isr(void);
 
 extern __declspec(system) unsigned long __VECTOR_RAM[];
 #define VECTOR_RAM_ADDRESS    (uint32)__VECTOR_RAM
@@ -390,7 +392,7 @@ __declspec(vectortable) vectorTableEntryType _vect[256] = {   /* Interrupt vecto
    asm_exception_handler,           /*  79 (0x13C) Device-specific interrupts */
    asm_exception_handler,           /*  80 (0x140) Device-specific interrupts */
    asm_exception_handler,           /*  81 (0x144) Device-specific interrupts */
-   asm_exception_handler,           /*  82 (0x148) Device-specific interrupts */
+   qspi_isr,           /*  82 (0x148) Device-specific interrupts */
    asm_exception_handler,           /*  83 (0x14C) Device-specific interrupts */
    asm_exception_handler,           /*  84 (0x150) Device-specific interrupts */
    asm_exception_handler,           /*  85 (0x154) Device-specific interrupts */
@@ -428,7 +430,7 @@ __declspec(vectortable) vectorTableEntryType _vect[256] = {   /* Interrupt vecto
    asm_exception_handler,           /* 117 (0x___) Reserved                   */
    asm_exception_handler,           /* 118 (0x___) Reserved                   */
    asm_exception_handler,           /* 119 (0x___) Reserved                   */
-   asm_exception_handler,           /* 120 (0x___) Reserved                   */
+   PIT1_Interrupt,           /* 120 (0x___) Reserved                   */
    asm_exception_handler,           /* 121 (0x___) Reserved                   */
    asm_exception_handler,           /* 122 (0x___) Reserved                   */
    asm_exception_handler,           /* 123 (0x___) Reserved                   */
