@@ -31,7 +31,7 @@ int main(void)
 	printf("\"QSPI\" module examples on MCF52259\n");
 		
 	/* QSPI Basic Initialization */
-	qspi_init(5000, 0, 8, 2, 5);
+	qspi_init(5000, 0, 8, 2, 5, CS_PIN3);
 	//PIT1_Init();
 
 	reset_2515();
@@ -39,7 +39,7 @@ int main(void)
 		
 	//test_2515();
 
-	// bit timing is 5, 7, 7
+	// bit timing is 5, 7, 7, 50khz
 	config_2515(1, 0x3, 4, 6, 6);
 
 #if 1

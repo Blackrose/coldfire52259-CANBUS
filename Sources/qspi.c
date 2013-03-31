@@ -19,40 +19,65 @@ tQSPIBuffers *qspi_crt_buf;
 
 void handle_qspi_int(void);
 uint8 qspi_isfin(void);
-uint8 qspi_setbits(uint8 u8NumberofBits);
-uint8 qspi_setbaudrate(uint16 u16Baudrate);
+uint8 qspi_setbits(uint8 bits);
+uint8 qspi_setbaudrate(uint16 baudrate);
+
 
 /* 
  * Initialize the QSPI
  */
-int8 qspi_init(uint16 u16Baudrate, uint8 u8ClkAttrib, 
-              uint8 u8Bits, uint8 u8ClkDly, 
-              uint8 u8DlyAft) 
+int8 qspi_init(uint16 baudrate, uint8 clk_attr, 
+              uint8 bits, uint8 clk_dly, 
+              uint8 dly_aft, CS_PIN pin) 
 {
     int8 i8Ret=0;
+    uint8 cs;
+    
+    // use FB_A6 as CS pin
+#ifdef SPI_IN_CAN
+    MCF_GPIO_DDRTE |= (1 << 6);
+    //MCF_GPIO_PORTTE |= (0 << 6);
+    MCF_GPIO_PTEPAR = (0 << 6);
+    //MCF_GPIO_SETTE |= (0 << 6);
+#endif 
+    
+    switch(pin){
+    case CS_PIN0:
+    	cs = MCF_GPIO_PQSPAR_QSPI_CS0_CS0;
+    	break;
+    case CS_PIN2:
+    	cs = MCF_GPIO_PQSPAR_QSPI_CS2_CS2;
+    	break;
+    case CS_PIN3:
+    	cs = MCF_GPIO_PQSPAR_QSPI_CS3_CS3;
+    	break;
+    case OTHER:
+    	cs = 0;
+    	break;
+    default:
+    	cs = 0;
+    	break;
+    }
+    	
     
     MCF_GPIO_PQSPAR = MCF_GPIO_PQSPAR_QSPI_DOUT_DOUT |
 		MCF_GPIO_PQSPAR_QSPI_DIN_DIN |
 		MCF_GPIO_PQSPAR_QSPI_CLK_CLK |
-		//MCF_GPIO_PQSPAR_QSPI_CS0_CS0 |
-		//MCF_GPIO_PQSPAR_QSPI_CS2_CS2 |
 		MCF_GPIO_PQSPAR_QSPI_CS3_CS3 ;
+    
     //MCF_GPIO_PQSPAR = 0x1555;
+    
 
     /* Set as a Master always and set CPOL & CPHA */
     MCF_QSPI_QMR = (MCF_QSPI_QMR_MSTR | 
-    		((u8ClkAttrib & 0x3) << 8));    
+    		((clk_attr & 0x3) << 8));    
     
-    i8Ret |= qspi_setbits(u8Bits);
-    i8Ret |= qspi_setbaudrate(u16Baudrate);
+    i8Ret |= qspi_setbits(bits);
+    i8Ret |= qspi_setbaudrate(baudrate);
     
-    MCF_QSPI_QDLYR = (MCF_QSPI_QDLYR_QCD(u8ClkDly) | 
-    		MCF_QSPI_QDLYR_DTL(u8DlyAft));
-    /*
-    MCF_QSPI_QIR = (MCF_QSPI_QIR_WCEFB | MCF_QSPI_QIR_ABRTB |
-                          MCF_QSPI_QIR_ABRTL | MCF_QSPI_QIR_WCEF |               
-                          MCF_QSPI_QIR_ABRT | MCF_QSPI_QIR_SPIF);
-    */
+    MCF_QSPI_QDLYR = (MCF_QSPI_QDLYR_QCD(clk_dly) | 
+    		MCF_QSPI_QDLYR_DTL(dly_aft));
+
 
     MCF_QSPI_QWR = MCF_QSPI_QWR_CSIV;
 
@@ -61,7 +86,13 @@ int8 qspi_init(uint16 u16Baudrate, uint8 u8ClkAttrib,
     MCF_INTC0_IMRL &= ~(MCF_INTC_IMRL_INT_MASK18 | MCF_INTC_IMRL_MASKALL);
     MCF_INTC0_ICR18 = MCF_INTC_ICR_IL(7) | MCF_INTC_ICR_IP(7);
     MCF_QSPI_QIR |= MCF_QSPI_QIR_SPIFE | MCF_QSPI_QIR_SPIF;
-
+    
+    /*
+    MCF_QSPI_QIR = (MCF_QSPI_QIR_WCEFB | MCF_QSPI_QIR_ABRTB |
+                          MCF_QSPI_QIR_ABRTL | MCF_QSPI_QIR_WCEF |               
+                          MCF_QSPI_QIR_ABRT | MCF_QSPI_QIR_SPIF);
+    */
+    
     return 0;
 }
 
@@ -91,11 +122,11 @@ void PIT1_Init(void)
 /* 
  * Set the Baudrate
  */
-uint8 qspi_setbaudrate(uint16 u16Baudrate)
+uint8 qspi_setbaudrate(uint16 baudrate)
 {
     uint16 u16Baud; 
     
-    u16Baud = ((40 * 1000 / 2) / u16Baudrate);
+    u16Baud = ((40 * 1000 / 2) / baudrate);
      
     if ((u16Baud> 1 ) && (u16Baud < 255)){
          MCF_QSPI_QMR &= ~MCF_QSPI_QMR_BAUD(0xFF);
@@ -110,12 +141,12 @@ uint8 qspi_setbaudrate(uint16 u16Baudrate)
 /* 
  * Set Bits
  */
-uint8 qspi_setbits(uint8 u8NumberofBits)
+uint8 qspi_setbits(uint8 bits)
 {
     uint8 u8Bits; 
     
-    if (u8NumberofBits >7 && u8NumberofBits < 17){
-        u8Bits = (u8NumberofBits & 0x0F);
+    if (bits >7 && bits < 17){
+        u8Bits = (bits & 0x0F);
         MCF_QSPI_QMR &= ~MCF_QSPI_QMR_BITS(0xF);
         MCF_QSPI_QMR |= MCF_QSPI_QMR_BITS(u8Bits);
         return 0;
@@ -128,20 +159,20 @@ uint8 qspi_setbits(uint8 u8NumberofBits)
 /* 
  * Init a QSPI Buffer for SPI transfers
  */
-struct tQSPIBuffers* qspi_init_buffer(uint8 u8Size)
+struct tQSPIBuffers* qspi_init_buffer(uint8 size)
 {
     tQSPIBuffers *ptr;
     
     ptr=(tQSPIBuffers*)malloc(sizeof(tQSPIBuffers));
     memset(ptr, 0, sizeof(tQSPIBuffers));
-    ptr->size = u8Size;
+    ptr->size = size;
     
-    ptr->tx_data=(uint16*)malloc((u8Size)*sizeof(uint16));
-    memset(ptr->tx_data, 0, sizeof(uint16)*u8Size);
-    ptr->rx_data=(uint16*)malloc((u8Size)*sizeof(uint16));
-    memset(ptr->rx_data, 0, sizeof(uint16)*u8Size);
-    ptr->cmd=(uint16*)malloc((u8Size)*sizeof(uint16));
-    memset(ptr->cmd, 0, sizeof(uint8)*u8Size);
+    ptr->tx_data=(uint16*)malloc((size)*sizeof(uint16));
+    memset(ptr->tx_data, 0, sizeof(uint16)*size);
+    ptr->rx_data=(uint16*)malloc((size)*sizeof(uint16));
+    memset(ptr->rx_data, 0, sizeof(uint16)*size);
+    ptr->cmd=(uint16*)malloc((size)*sizeof(uint16));
+    memset(ptr->cmd, 0, sizeof(uint8)*size);
 
     ptr->stat = QSPI_BUFFSTAT_IDLE;
     return ptr;
@@ -183,6 +214,9 @@ int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff)
 		MCF_QSPI_QWR_ENDQP((sQSPIBuff->size)-1) | 
 		MCF_QSPI_QWR_NEWQP(0);
     
+#ifdef SPI_IN_CAN
+    MCF_GPIO_PORTTE &= (0 << 6);
+#endif
     MCF_QSPI_QDLYR |= MCF_QSPI_QDLYR_SPE;
         
     while(!qspi_isfin()){
@@ -191,6 +225,9 @@ int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff)
     		return -1;
     	}
     }
+#ifdef SPI_IN_CAN 
+    MCF_GPIO_PORTTE |= (1 << 6);
+#endif
     
     return 0;
 }

@@ -13,6 +13,8 @@
 //#include "common.h"
 #include "support_common.h"
 
+//#define SPI_IN_CAN 1
+
 /*
  * QSPI Macros
  */
@@ -57,17 +59,24 @@ typedef struct tQSPIBuffers
     uint8 stat;
 }tQSPIBuffers;
 
+typedef enum 
+{
+	CS_PIN0 = 0,
+	CS_PIN2,
+	CS_PIN3,
+	OTHER
+}CS_PIN;
 
 /*
  * Functions provided by this driver
  */
-int8 qspi_init(uint16 u16Baudrate, uint8 u8ClkAttrib, 
-              uint8 u8Bits, uint8 u8ClkDly, uint8 u8DlyAft);
+int8 qspi_init(uint16 baudrate, uint8 clk_attr, 
+              uint8 bits, uint8 clk_dly, uint8 dly_aft, CS_PIN pin);
 void PIT1_Init(void);
 
 int8 QSPIPollBufferTransfer(tQSPIBuffers *sQSPIBuff);
 
-struct tQSPIBuffers* qspi_init_buffer(uint8 u8Size);
+struct tQSPIBuffers* qspi_init_buffer(uint8 size);
 int8 qspi_free_buffer(tQSPIBuffers *sQSPIBuff);
 
 int8 QSPIIntBufferTransfer(tQSPIBuffers *sQSPIBuff);

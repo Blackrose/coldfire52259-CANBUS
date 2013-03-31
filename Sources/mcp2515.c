@@ -9,8 +9,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// each entry of queue must be fill this CMD 
+// each entry of queue must be fill this CMD
+#ifdef SPI_IN_CAN
+
+#define CMD_VAL (1 << 15 | 1 << 14 | 1 << 13 | 1 << 12 | 0xf << 8)
+
+#else
+
 #define CMD_VAL (1 << 15 | 1 << 14 | 1 << 13 | 1 << 12 | 0x7 << 8)
+
+#endif
 
 void write_data_2515(uint8 addr, uint8 data)
 {
