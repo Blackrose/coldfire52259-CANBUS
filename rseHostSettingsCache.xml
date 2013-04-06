@@ -64,7 +64,7 @@
 <property key="host.defaultEncoding" value=""/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.STARTUP_PCI_DELAY" value="1"/>
 <property key="propertySet.[cw.dbg.ct.bareboard.ondemand].networkUDPPort" value="1234"/>
-<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1364695736515"/>
+<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1365234146656"/>
 <property key="propertySet.[cw.dbg.ct.bareboard.ondemand].executeReset" value="true"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="false"/>
 <property key="propertySet.[cw.dbg.ct.bareboard.ondemand].useNetworkUDPPort" value="false"/>
@@ -140,7 +140,7 @@
 <property key="propertySet.[cw.dbg.ct.bareboard].enableStopTransferIOModelConfig" value="true"/>
 <property key="host.defaultEncoding" value=""/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.STARTUP_PCI_DELAY" value="1"/>
-<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1364695736515"/>
+<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1365234146687"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="false"/>
 <property key="host.description" value="从pre-RSE启动配置生成"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.STARTUP_SPECIFY_NETWORKCARD" value="127.0.0.1"/>
@@ -220,7 +220,7 @@
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv1].com.pemicro.mcu.debug.connections.pne.cfv1.UUID" value="3446aecb-a6bd-4a91-a492-7a813ff75384"/>
 <property key="host.defaultEncoding" value=""/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.pemicro.mcu.debug.connections.pne.cfv234.STARTUP_PCI_DELAY" value="1"/>
-<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1364695736515"/>
+<property key="propertySet.[cw.ide.settingscache].hidden.TimeStamp" value="1365234146687"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv234].com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="false"/>
 <property key="propertySet.[com.pemicro.mcu.debug.connections.pne.cfv1].com.pemicro.mcu.debug.connections.pne.cfv1.Library" value="cf_pne_gdi"/>
 <property key="host.description" value="从pre-RSE启动配置生成"/>
